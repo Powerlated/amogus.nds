@@ -1,4 +1,5 @@
 directory.o: /mnt/h/Git/amogus.nds/nitrofs/nitrodir/source/directory.c \
+ /opt/devkitpro/libnds/include/filesystem.h \
  /opt/devkitpro/libnds/include/nds.h \
  /opt/devkitpro/libnds/include/nds/libversion.h \
  /opt/devkitpro/libnds/include/nds/ndstypes.h \
@@ -58,8 +59,8 @@ directory.o: /mnt/h/Git/amogus.nds/nitrofs/nitrodir/source/directory.c \
  /opt/devkitpro/libnds/include/nds/arm9/trig_lut.h \
  /opt/devkitpro/libnds/include/nds/arm9/video.h \
  /opt/devkitpro/libnds/include/nds/arm9/videoGL.h \
- /opt/devkitpro/libnds/include/nds/arm9/nand.h \
- /opt/devkitpro/libnds/include/filesystem.h
+ /opt/devkitpro/libnds/include/nds/arm9/nand.h
+/opt/devkitpro/libnds/include/filesystem.h:
 /opt/devkitpro/libnds/include/nds.h:
 /opt/devkitpro/libnds/include/nds/libversion.h:
 /opt/devkitpro/libnds/include/nds/ndstypes.h:
@@ -120,4 +121,3 @@ directory.o: /mnt/h/Git/amogus.nds/nitrofs/nitrodir/source/directory.c \
 /opt/devkitpro/libnds/include/nds/arm9/video.h:
 /opt/devkitpro/libnds/include/nds/arm9/videoGL.h:
 /opt/devkitpro/libnds/include/nds/arm9/nand.h:
-/opt/devkitpro/libnds/include/filesystem.h:

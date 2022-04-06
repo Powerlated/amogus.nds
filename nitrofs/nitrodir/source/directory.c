@@ -7,8 +7,10 @@
 
 
 ---------------------------------------------------------------------------------*/
-#include <nds.h>
+#include <stdbool.h>
 #include <filesystem.h>
+#include <nds.h>
+#include <stdint.h>
 
 
 #include <stdio.h>
@@ -45,8 +47,6 @@ const char *amogus = "                    "
 //---------------------------------------------------------------------------------
 int main(void) {
   //---------------------------------------------------------------------------------
-  touchPosition touchXY;
-
   irqSet(IRQ_VBLANK, Vblank);
 
   consoleDemoInit();
@@ -57,34 +57,51 @@ int main(void) {
   FILE *amongdripLFile = fopen("amogusdrip_left.signedpcm16", "rb");
   FILE *amongdripRFile = fopen("amogusdrip_right.signedpcm16", "rb");
 
-//   if (amongdripLFile != NULL && amongdripRFile != NULL) {
-//     iprintf("loaded among drip");
-//   } else {
-//     iprintf("failed to load among drip");
-//   }
+  //   if (amongdripLFile != NULL && amongdripRFile != NULL) {
+  //     iprintf("loaded among drip");
+  //   } else {
+  //     iprintf("failed to load among drip");
+  //   }
 
-  const int bufferSize = 131072;
-  uint8_t *soundBufL = malloc(bufferSize); // 1 MiB;
-  uint8_t *soundBufR = malloc(bufferSize); // 1 MiB;
-
-  fread(soundBufL, bufferSize, 1, amongdripLFile);
-  fread(soundBufR, bufferSize, 1, amongdripRFile);
+  const uint32_t bufferSize = 131072;
+  const uint32_t halfBufferSize = bufferSize / 2;
+  uint8_t playingBuf = 0;
+  uint8_t *soundBufL = calloc(bufferSize, 1); // 1 MiB;
+  uint8_t *soundBufR = calloc(bufferSize, 1); // 1 MiB;
+  uint8_t *soundBufLMid = soundBufL + halfBufferSize;
+  uint8_t *soundBufRMid = soundBufR + halfBufferSize;
 
   soundEnable();
-  soundPlaySample(soundBufL, SoundFormat_16Bit, bufferSize, 32768, 127, 0,
-                  false, 0);
+
+  const int halfSampleLengthCycles = 1024 * (halfBufferSize / 2);
+
+  uint32_t targetTime = halfSampleLengthCycles / 2;
+
+  fread(soundBufL, halfBufferSize, 1, amongdripLFile);
+  fread(soundBufR, halfBufferSize, 1, amongdripRFile);
+
+  soundPlaySample(soundBufL, SoundFormat_16Bit, bufferSize, 32768, 127, 0, true,
+                  0);
   soundPlaySample(soundBufR, SoundFormat_16Bit, bufferSize, 32768, 127, 127,
-                  false, 0);
+                  true, 0);
 
+  cpuStartTiming(0);
   while (1) {
+    if (cpuGetTiming() >= targetTime) {
+      targetTime += halfSampleLengthCycles;
 
-    swiWaitForVBlank();
-    scanKeys();
-    int keys = keysDown();
-    if (keys & KEY_START)
-      break;
+      if (playingBuf == 1) {
+        fread(soundBufL, halfBufferSize, 1, amongdripLFile);
+        fread(soundBufR, halfBufferSize, 1, amongdripRFile);
+      } else {
+        fread(soundBufLMid, halfBufferSize, 1, amongdripLFile);
+        fread(soundBufRMid, halfBufferSize, 1, amongdripRFile);
+      }
 
-    touchRead(&touchXY);
+      playingBuf ^= 1;
+
+    //   iprintf("new buf");
+    }
 
     // print at using ansi escape sequence \x1b[line;columnH
   }
