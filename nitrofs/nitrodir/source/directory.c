@@ -8,10 +8,9 @@
 
 ---------------------------------------------------------------------------------*/
 #include <stdbool.h>
+#include <stdint.h>
 #include <filesystem.h>
 #include <nds.h>
-#include <stdint.h>
-
 
 #include <stdio.h>
 
@@ -54,6 +53,7 @@ int main(void) {
   iprintf(amogus);
 
   nitroFSInit(NULL);
+  // BOTH OF THESE FILES HAVE TO BE THE EXACT SAME LENGTH
   FILE *amongdripLFile = fopen("amogusdrip_left.signedpcm16", "rb");
   FILE *amongdripRFile = fopen("amogusdrip_right.signedpcm16", "rb");
 
@@ -75,7 +75,7 @@ int main(void) {
 
   const int halfSampleLengthCycles = 1024 * (halfBufferSize / 2);
 
-  uint32_t targetTime = halfSampleLengthCycles / 2;
+  uint32_t targetTime = 0;
 
   fread(soundBufL, halfBufferSize, 1, amongdripLFile);
   fread(soundBufR, halfBufferSize, 1, amongdripRFile);
@@ -90,17 +90,33 @@ int main(void) {
     if (cpuGetTiming() >= targetTime) {
       targetTime += halfSampleLengthCycles;
 
+      uint32_t elementsRead;
       if (playingBuf == 1) {
-        fread(soundBufL, halfBufferSize, 1, amongdripLFile);
-        fread(soundBufR, halfBufferSize, 1, amongdripRFile);
+        fread(soundBufL, 1, halfBufferSize, amongdripLFile);
+        elementsRead = fread(soundBufR, 1, halfBufferSize, amongdripRFile);
       } else {
-        fread(soundBufLMid, halfBufferSize, 1, amongdripLFile);
-        fread(soundBufRMid, halfBufferSize, 1, amongdripRFile);
+        fread(soundBufLMid, 1, halfBufferSize, amongdripLFile);
+        elementsRead = fread(soundBufRMid, 1, halfBufferSize, amongdripRFile);
+      }
+
+      if (elementsRead < halfBufferSize) {
+        for (uint32_t i = elementsRead; i < halfBufferSize; i++) {
+          if (playingBuf == 1) {
+            soundBufL[i] = 0;
+            soundBufR[i] = 0;
+          } else {
+            soundBufLMid[i] = 0;
+            soundBufRMid[i] = 0;
+          }
+        }
+
+        rewind(amongdripLFile);
+        rewind(amongdripRFile);
       }
 
       playingBuf ^= 1;
 
-    //   iprintf("new buf");
+      //   iprintf("new buf");
     }
 
     // print at using ansi escape sequence \x1b[line;columnH
