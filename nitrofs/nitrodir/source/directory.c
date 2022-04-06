@@ -90,6 +90,7 @@ int main(int argc, char **argv) {
 
   iprintf(amogus);
 
+
   nitroFSInit(NULL);
   chdir("nitro:/");
 
