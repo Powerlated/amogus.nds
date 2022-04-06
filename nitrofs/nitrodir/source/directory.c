@@ -7,10 +7,14 @@
 
 
 ---------------------------------------------------------------------------------*/
-#include <stdbool.h>
-#include <stdint.h>
+#include <dirent.h>
+#include <fat.h>
 #include <filesystem.h>
 #include <nds.h>
+#include <stdbool.h>
+#include <stdint.h>
+#include <string.h>
+
 
 #include <stdio.h>
 
@@ -44,7 +48,41 @@ const char *amogus = "                    "
                      "            ";
 
 //---------------------------------------------------------------------------------
-int main(void) {
+void dirlist(const char *path) {
+  //---------------------------------------------------------------------------------
+
+  DIR *pdir = opendir(path);
+
+  if (pdir != NULL) {
+
+    while (true) {
+      struct dirent *pent = readdir(pdir);
+      if (pent == NULL)
+        break;
+
+      if (strcmp(".", pent->d_name) != 0 && strcmp("..", pent->d_name) != 0) {
+        if (pent->d_type == DT_DIR) {
+          printf("%s/%s <DIR>\n", (strcmp("/", path) == 0) ? "" : path,
+                 pent->d_name);
+          char *dnbuf = (char *)malloc(strlen(pent->d_name) + strlen(path) + 2);
+          sprintf(dnbuf, "%s/%s", (strcmp("/", path) == 0) ? "" : path,
+                  pent->d_name);
+          dirlist(dnbuf);
+          free(dnbuf);
+        } else {
+          printf("%s/%s\n", (strcmp("/", path) == 0) ? "" : path, pent->d_name);
+        }
+      }
+    }
+
+    closedir(pdir);
+  } else {
+    printf("opendir() failure.\n");
+  }
+}
+
+//---------------------------------------------------------------------------------
+int main(int argc, char **argv) {
   //---------------------------------------------------------------------------------
   irqSet(IRQ_VBLANK, Vblank);
 
@@ -53,15 +91,23 @@ int main(void) {
   iprintf(amogus);
 
   nitroFSInit(NULL);
+  chdir("nitro:/");
+
+  // dirlist("/");
+  // dirlist("/");
+
   // BOTH OF THESE FILES HAVE TO BE THE EXACT SAME LENGTH
+  // iprintf("nitroFS inited");
   FILE *amongdripLFile = fopen("amogusdrip_left.signedpcm16", "rb");
   FILE *amongdripRFile = fopen("amogusdrip_right.signedpcm16", "rb");
 
-  //   if (amongdripLFile != NULL && amongdripRFile != NULL) {
-  //     iprintf("loaded among drip");
-  //   } else {
-  //     iprintf("failed to load among drip");
-  //   }
+  // iprintf("amogus2");
+
+  // if (amongdripLFile != NULL && amongdripRFile != NULL) {
+  //   iprintf("loaded among drip");
+  // } else {
+  //   iprintf("failed to load among drip");
+  // }
 
   const uint32_t bufferSize = 131072;
   const uint32_t halfBufferSize = bufferSize / 2;
