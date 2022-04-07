@@ -98,7 +98,7 @@ export INCLUDE	:=	$(foreach dir,$(INCLUDES),-I$(CURDIR)/$(dir)) \
  
 export LIBPATHS	:=	$(foreach dir,$(LIBDIRS),-L$(dir)/lib)
  
-.PHONY: $(BUILD) clean
+.PHONY: $(BUILD) clean converted_audio.wav
  
 #---------------------------------------------------------------------------------
 $(BUILD):
@@ -118,7 +118,18 @@ else
 #---------------------------------------------------------------------------------
 $(OUTPUT).nds	: 	$(OUTPUT).elf
 $(OUTPUT).nds	: 	$(shell find $(TOPDIR)/$(NITRODATA))
-$(OUTPUT).elf	:	$(OFILES)
+$(OUTPUT).elf	:	$(OFILES) nitrofiles/audio_left.signedpcm16 nitrofiles/audio_right.signedpcm16
+
+converted_audio.wav: FORCE
+	ffmpeg -y -i $(TOPDIR)/source.flac -af aresample=resampler=soxr -ar 32728 converted_audio.wav 
+
+nitrofiles/audio_left.signedpcm16: FORCE converted_audio.wav
+	ffmpeg -y -i converted_audio.wav -map_channel 0.0.0 -f s16le -acodec pcm_s16le $(TOPDIR)/nitrofiles/audio_left.signedpcm16
+	
+nitrofiles/audio_right.signedpcm16: FORCE converted_audio.wav
+	ffmpeg -y -i converted_audio.wav -map_channel 0.0.1 -f s16le -acodec pcm_s16le $(TOPDIR)/nitrofiles/audio_right.signedpcm16
+
+FORCE:
  
 #---------------------------------------------------------------------------------
 %.bin.o	:	%.bin
