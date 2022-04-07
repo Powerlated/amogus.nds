@@ -121,7 +121,7 @@ $(OUTPUT).nds	: 	$(shell find $(TOPDIR)/$(NITRODATA))
 $(OUTPUT).elf	:	$(OFILES) nitrofiles/audio_left.signedpcm16 nitrofiles/audio_right.signedpcm16
 
 converted_audio.wav: FORCE
-	ffmpeg -y -i $(TOPDIR)/source.flac -af aresample=resampler=soxr -ar 32728 converted_audio.wav 
+	ffmpeg -y -i $(TOPDIR)/source.wav -af aresample=resampler=soxr -ar 32728 converted_audio.wav 
 
 nitrofiles/audio_left.signedpcm16: FORCE converted_audio.wav
 	ffmpeg -y -i converted_audio.wav -map_channel 0.0.0 -f s16le -acodec pcm_s16le $(TOPDIR)/nitrofiles/audio_left.signedpcm16
