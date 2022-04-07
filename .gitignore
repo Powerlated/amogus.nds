@@ -1,3 +1,4 @@
 build
 *.webm
 *.flac
+nitrofiles/*.signedpcm16
